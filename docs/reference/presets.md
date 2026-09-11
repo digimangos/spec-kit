@@ -31,6 +31,39 @@ Installs a preset from the catalog, a URL, or a local directory. Preset commands
 
 > **Note:** All preset commands require a project already initialized with `specify init`.
 
+## Update a Preset
+
+```bash
+specify preset update <preset_id> [--from <url>] [--dev <path>] [--priority <N>]
+```
+
+Replaces an already-installed preset by running the normal `preset remove`
+operation first and then the normal `preset add` operation. `--from`, `--dev`,
+and `--priority` are forwarded to `preset add`; `--from` and `--dev` cannot be
+combined. Without an explicit source, add resolves the preset through its usual
+bundled and catalog lookup.
+
+Update is deliberately destructive. Arguments are checked before anything is
+removed: `--from` and `--dev` cannot be combined, `--priority` must be 1 or
+higher, and the preset must already be installed. Beyond those checks the
+replacement source itself is not inspected in advance. If removal succeeds but
+replacement installation fails, the previous preset has already been removed.
+The command reports a copy-pastable `specify preset add` retry command,
+including the replacement source and priority. There is no source pre-flight,
+version comparison, staging, rollback, or automatic recovery. A missing or
+invalid replacement source can therefore leave the preset removed. With
+`--from` or `--dev`, the replacement manifest's `preset.id` is not checked
+against the requested ID before removal; a source declaring a different ID may
+therefore install a different preset after the requested one has been removed.
+
+A successful update follows normal remove and add behaviour: it re-enables the
+preset, recreates `installed_at`, removes local modifications tracked by the
+preset, and treats an explicit `--from` or `--dev` as an intentional source
+change. If constitution synchronisation is enabled, both normal reconciliation
+passes run. The generated-file guard still protects a hand-edited
+`.specify/memory/constitution.md`; no update-specific constitution optimisation
+is applied.
+
 ## Remove a Preset
 
 ```bash
